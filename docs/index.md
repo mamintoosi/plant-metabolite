@@ -9,7 +9,7 @@ In this project we will try to discover the relation of plants and plants' metab
 ## Text Mining
 
 ### Last Results
-- [The graph of 100 best plants with minimum of 40 dependencies](/plant-metabolite/bestPlants_min_freq_40.html)
+- [The graph of 100 best plants with minimum of 10 dependencies](/plant-metabolite/bestPlants_min_freq_10.html)
 
 ### Results 2020/12/17
 - [The graph of plants with minimum of 20 dependencies](/plant-metabolite/20_metabolGraph.html)
