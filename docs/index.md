@@ -4,9 +4,6 @@
 
 In this project we will try to discover the relation of plants and plants' metabolites in an specefic domain of Biology with Data Mining methods.
 
-```Data Mining
-Syntax highlighted code block
-
 # Association rule learning
 ## Frequnt Itemset Mining
 ## Text Mining
