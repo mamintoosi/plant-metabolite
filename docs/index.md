@@ -12,7 +12,7 @@ Syntax highlighted code block
 ## Text Mining
 
 ### Current Results
-[The graph of plants with minimum of 40 dependencies](plant-metabolite/results/40_metabolGraph.html)
+[The graph of plants with minimum of 40 dependencies](/results/40_metabolGraph.html)
 
 ### To Do
 ...
