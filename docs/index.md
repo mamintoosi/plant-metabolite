@@ -12,13 +12,14 @@ Syntax highlighted code block
 ## Text Mining
 
 ### Current Results
-[The graph of plants with minimum of 40 dependencies](/results/40_metabolGraph.html)
+- [The graph of plants with minimum of 20 dependencies](/plant-metabolite/20_metabolGraph.html)
+- [The graph of plants with minimum of 40 dependencies](/plant-metabolite/40_metabolGraph.html)
 
 ### To Do
 ...
 
 ### Support or Contact
 
-- [Mahmood Amintoosi](https://https://mamintoosi.github.io/)
+- [Mahmood Amintoosi](https://mamintoosi.github.io/)
 - Eisa Kohan, mailto: e.kohan@hsu.ac.ir
 - [Madjid Momeni Moghaddam](https://github.com/mamintoosi/MMM-Artistic-photoes)
