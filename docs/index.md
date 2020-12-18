@@ -11,7 +11,10 @@ Syntax highlighted code block
 ## Frequnt Itemset Mining
 ## Text Mining
 
-### Current Results
+### Last Results
+- [The graph of plants with minimum of 20 dependencies](/plant-metabolite/bestPlants_min_freq_40.html)
+
+### Results 2020/12/17
 - [The graph of plants with minimum of 20 dependencies](/plant-metabolite/20_metabolGraph.html)
 - [The graph of plants with minimum of 40 dependencies](/plant-metabolite/40_metabolGraph.html)
 
