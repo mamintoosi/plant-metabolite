@@ -1,4 +1,11 @@
-# Author: Mahmood Amintoosi
+# -*- coding: utf-8 -*-
+#
+#    Copyright (C) 2021-2029 by
+#    Mahmood Amintoosi <m.amintoosi@gmail.com>
+#    All rights reserved.
+#    BSD license.
+"""Algorithms used in bio-graphs."""
+
 # توابع معمول موردنیاز برای عملیات گراف
 
 from scipy.sparse import csr_matrix
@@ -8,12 +15,12 @@ import pandas as pd
 import numpy as np
 # from orangecontrib.associate.fpgrowth import *
 # from itertools import tee
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 import networkx as nx
 import math
 from sklearn import preprocessing
 import ml_metrics
-import recmetrics
+# import recmetrics
 from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib.pyplot as plt
 from pandas import DataFrame
@@ -21,33 +28,50 @@ pd.options.display.float_format = "{:.2f}".format
 
 
 # Compute Graph Features
-def graph_features(G, normalize=True):
+def graph_features(G, weight=None, normalize=True):
     """
     Computer graph nodes attributes
 
     Parameters
     ----------
     G : nx.Graph
+
+    weight : string or None, optional (default=None)
+    The edge attribute that holds the numerical value used as a weight.
+    Degree of nodes computed according to the graph nodes' weights
+    If None, then each edge has weight 1.
+
     normalize : boolean
         If True, All columns of the returned DataFrame will be normalized.
 
     Returns
     -------
     dataframe
+
+    Notes
+    -----
+    Currently weight parameter is considered only for node degrees. 
+    Some other criteria have not accepted weight parameter, 
+    some of them such as betweenness, are sensible to weighted edges,
+    but the minimum edge value is better for these criteria,
+    but the default value is that the strong weight indicate stronger connections.
+
     """    
     df = pd.DataFrame(index=G.nodes())
-    # deg = G.degree()
-    # deg_list = np.zeros((len(deg)))
-    # for i,x in enumerate(G.degree()):
-    #     deg_list[i] = x[1]
-    with tqdm(total=5) as progress_bar:
-        # df['degree'] = deg_list #pd.Series(deg_list)
-        df['degree_cent'] = pd.Series(nx.degree_centrality(G))
+    with tqdm(total=6) as progress_bar:
+        d = G.degree(weight=weight)
+        df['degree'] = ([v[1] for v in d]) 
+        progress_bar.update(1)
+        # df['degree_cent'] = pd.Series(nx.degree_centrality(G))
+        # progress_bar.update(1)
         df['betweenness'] = pd.Series(nx.betweenness_centrality(G))
-        df['closeness'] = pd.Series(nx.closeness_centrality(G))
+        progress_bar.update(1)
+        # df['closeness'] = pd.Series(nx.closeness_centrality(G))
+        # progress_bar.update(1)
 
         # ظاهرا هر چه کمتر باشه بهتره
-        df['eccentricity'] = 1-pd.Series(nx.eccentricity(G))
+        df['eccentricity'] = -pd.Series(nx.eccentricity(G))
+        progress_bar.update(1)
         df['eigenvector'] = pd.Series(nx.eigenvector_centrality(G))
         progress_bar.update(1)
 
@@ -117,15 +141,29 @@ def largest_con_com(df, G):
     maxIdx = idx[-1]
     # print(maxIdx,n_con_comp[maxIdx])
     con_comp_indices = list(conComp[maxIdx])
+    # print(con_comp_indices)
     subG = G.subgraph(nodes=con_comp_indices).copy()
-    node_names = [df.keys().format()[x] for x in con_comp_indices]
-    mapping = dict(zip(con_comp_indices, node_names))
-    subG = nx.relabel_nodes(subG, mapping)
+    # در اینجا فهرست نودهای متصب نام گره ها هستند
+    # node_names = [df.index.format()[x] for x in con_comp_indices]
+    # mapping = dict(zip(con_comp_indices, node_names))
+    # subG = nx.relabel_nodes(subG, mapping)
     return subG
 
+def make_graph_from_df(df,node_objects,edge_objects):
+    dfct = pd.crosstab(df[node_objects], df[edge_objects])
+    bow = dfct.values
+    M = bow.dot(bow.T)
+    np.fill_diagonal(M,0)
+    G = nx.Graph(M)
+    node_names = dfct.index.format()
+    mapping = dict(zip(np.arange(len(node_names)), node_names))
+    G = nx.relabel_nodes(G, mapping)
+    return G,dfct,bow
 
-def rank_using_graph_features(subG, min_count, node_objects, edge_objects, data_dir, output_dir, working_file_name):
-    print('Computing features...\n')
+
+
+def rank_using_graph_features(subG): #, min_count, node_objects, edge_objects, data_dir, output_dir, working_file_name):
+    # print('Computing features...\n')
     gf_df = graph_features(subG)  # graph features data frame
     # print(gf_df)
 
@@ -153,12 +191,32 @@ def compute_metrics(true_list, recom_list, apk_ranges=np.arange(1, 50, 2), mapk_
     for K in apk_ranges:
         apk.extend([ml_metrics.apk(true_list, recom_list, k=K)])
     mapk = []
-    for K in mapk_ranges:
-        mapk.extend([ml_metrics.mapk(true_list, recom_list, k=K)])
-    mark = []
-    for K in mapk_ranges:
-        mark.extend([recmetrics.mark(true_list, recom_list, k=K)])
-    return [apk, mapk, mark]
+    # با مراجعه به سورس تابع زیر مشخص شد که این برای کار ما درست نیست
+    # دلیل در انتهای فایل
+    # for K in mapk_ranges:
+    #     mapk.extend([ml_metrics.mapk([true_list], [recom_list], k=K)])
+        # mapk.extend([recmetrics.novelty(true_list, recom_list, k=K)]) # فرقی نکرد!!
+
+    #     به همان دلیل بالا بخش زیر هم مناسب کار ما نیست
+    # mark = []
+    # for K in mapk_ranges:
+    #     mark.extend([recmetrics.mark(true_list, recom_list, k=K)])
+
+    # و چون 
+    # _ark
+    # رو نشد فراخوانی کنم
+    # لذا هر کدام را داخل کروشه می‌گذاریم
+    ark = []
+
+    try:
+        import recmetrics
+        for K in apk_ranges:
+            ark.extend([recmetrics.mark([true_list], [recom_list], k=K)])
+    except ModuleNotFoundError:
+        ark = []
+        # print("module 'recmetrics' is not installed")
+
+    return [apk, ark]
 
 
 def AC_df_to_2_col():
@@ -330,3 +388,13 @@ def df_2_col_to_spread(file_prefix='LR',col_name='Met'):
 # from Orange.data.pandas_compat import table_from_frame
 # # data = Orange.data.Table(df.values)
 # data = table_from_frame(df)
+
+# دلیل نادرستی استفاده از 
+# mapk
+# actual = [1,2,3] #[[1,2,3],[3,4,5]]
+# predicted = [3,4,5]#[[1,2,4],[5,6,7],[8,9]]
+# for a,p in zip(actual, predicted):
+#     print(a,p)
+# این تابع برای وقتی است که یک لیست از جوابهای درست و توصیه شده دیتافریم
+# مثل خروجی لاتک 
+# tag-recommendation
