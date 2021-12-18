@@ -68,40 +68,58 @@ if __name__ == '__main__':
     # for col in df.columns:
     #    df[col] = df[col].apply(lambda x: float(x) if not pd.isna(x) else x)
 
+    GT_file = working_dir+GT_file_name
+    true_df = pd.read_excel(GT_file, engine="openpyxl") 
+    true_list = list(true_df[node_objects].unique())
+    # true_list = list(true_df.keys().values)
+
     # در فرم نود=گیاه، گیاهانی که حداقل مین‌کانت بار در دیتابیس اومدن، نگه داشته میشن
     # به عبارت دیگه حداقل مین‌کانت متابولیت داشتن
     # نگهداری ستونهای با بیش از یا مساوی با ۵ عنصر
     min_count = args.min_count
-    w_flag = False
+    w_flag = True #False
     # حداقل تعداد تکرار برای مجموعه اقلام مکرر
     # حد زیر برای نگهداری متابولیت‌هایی است که حداقل در پنج گیاه آمده‌اند.
     # minFreq = 2
 
-    print('Table info: ', df.shape)
-    print('Number of nodes in main file: ', len(df[node_objects].unique()))
+    # print('Table info: ', df.shape)
+    # print('Number of nodes in main file: ', len(df[node_objects].unique()))
 
     if min_count>1:
         s = df[node_objects].value_counts()
         df = df[df[node_objects].isin(s[s >= min_count].index)]
-        print('Number of nodes after prunning those nodes which have < min count={} elements is: {}'.format(min_count,len(df[node_objects].unique())))
+        # print('Number of nodes after prunning those nodes which have < min count={} elements is: {}'.format(min_count,len(df[node_objects].unique())))
 
     G,dfct,bow = make_graph_from_df(df,node_objects,edge_objects)
 
+    # اضافه کردن وزن لبه‌ی متابولیت‌های مشترک
+    # در حال حاضر فقط یک واحد اضافه میشه که میشه به نسبت تکرارش در مجموعه دوم اضافه بشه
+    # print('Number of Metabolites in dfct: ', len(dfct.columns))
+    second_graph_edges = list(true_df[edge_objects].unique())
+    # print('Number of Metabolites in Wound healing: ',len(second_graph_edges))
+    intersected_edges = set(dfct.columns).intersection(set(second_graph_edges))
+    # print('Number of intersected Meabolites:', len(intersected_edges))
+    edges_value_counts = true_df[edge_objects].value_counts()
+    for row in range(dfct.shape[0]):
+        for e in intersected_edges:
+            if dfct.iloc[row][e] != 0:
+                dfct.iloc[row][e] += edges_value_counts[e]
+                        
     # پیدا کردن بزرگترین زیرگراف همبند
-    print('Computing the largest connected graph...\n')
+    # print('Computing the largest connected graph...\n')
     subG = largest_con_com(dfct, G)
-    print('Number of sub graph nodes:', len(subG.nodes()))
+    # print('Number of sub graph nodes:', len(subG.nodes()))
     # # nx.draw_shell(subG,with_labels=True)
     subG_ix = list(subG.nodes())
     dfct_subG = dfct.loc[subG_ix]
-    print('Sub graph info before dropping: ', dfct_subG.shape)
+    # print('Sub graph info before dropping: ', dfct_subG.shape)
     # drop columns with zero sum
     dfct_subG = dfct_subG.loc[:, (dfct_subG != 0).any(axis=0)]
     # dfct = pd.crosstab(df[node_objects], df[edge_objects])
-    print('Sub graph info: ', dfct_subG.shape)
+    # print('Sub graph info: ', dfct_subG.shape)
 
-    print('Computing the graph features...\n')
-    gf_df, gf_df_sorted = rank_using_graph_features(subG)
+    # print('Computing the graph features...\n')
+    gf_df, gf_df_sorted = rank_using_graph_features(subG, weight='weight')
     # , min_count, node_objects, \
     #     edge_objects, data_dir, output_dir, working_file_name)
     # # df[list(subG)]
@@ -110,10 +128,6 @@ if __name__ == '__main__':
     # # T, bow, featureNames = bow_nodes(df_subG)
 
 
-    GT_file = working_dir+GT_file_name
-    true_df = pd.read_excel(GT_file, engine="openpyxl") 
-    true_list = list(true_df[node_objects].unique())
-    # true_list = list(true_df.keys().values)
     index = np.arange(1,50,2)
     [apk_gf,ark_gf] = compute_metrics(true_list, list(gf_df_sorted.index.values))
 
@@ -131,7 +145,7 @@ if __name__ == '__main__':
         'AP@k': apk_gf,
         'AR@k': ark_gf
         })
-    print('Computing frequent itemsets...\n')
+    # print('Computing frequent itemsets...\n')
 
     # # sorted_nodes_idx, sorted_nodes_idx_w, G, degreeG = fim_bio(minFreq,T,bow,featureNames)
     # The new weights will be stored in subG

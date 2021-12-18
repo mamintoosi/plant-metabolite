@@ -57,7 +57,7 @@ def fim_bio(subG, dfct, minFreq, itemsets, T, bow):#, node_objects,edge_objects,
     # featureNames = list(dfct.index.format())
     freqIS_list = list(itemsets)
     n_freqIS = len(freqIS_list)
-    print('Number of Freq. Itemsets:', n_freqIS)
+    # print('Number of Freq. Itemsets:', n_freqIS)
 
     fim_graph(subG, freqIS_list,minFreq,T,bow)#,featureNames)
     
@@ -102,7 +102,7 @@ def fim_graph(subG, freqIS_list, minFreq, T, bow):#,featureNames):
     # print('T=',T)
     G = np.zeros([nCol,nCol])  
     Gw = np.zeros([nCol,nCol])  
-    print('Computing adjacency Graphs by Frequently Itemsets...\n')
+    # print('Computing adjacency Graphs by Frequently Itemsets...\n')
     with tqdm(total=n_freqIS) as progress_bar:
         freqIS = iter(freqIS_list)
         for i,item in enumerate(freqIS):
